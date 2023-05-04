@@ -1,50 +1,62 @@
 # WARP installation
+$TMP_PATH = "C:\Temp\warp"
 $DOWNLOAD_FILE = "https://1111-releases.cloudflareclient.com/windows/Cloudflare_WARP_Release-x64.msi"
-$EXE_FILE = "warp-64.msi"
+$EXE_FILE = "$TMP_PATH\warp-64.msi"
 
 # WARP certificate
-$certPath = "C:\Temp\certificates"
-$logFile = ".\certlogs.log"
+$CERTPATH = "$TMP_PATH\certificates"
+$CERT_LOG = ".\certlogs.log"
 
-if (!(Test-Path -Path $certPath -PathType Container)) {
-    New-Item -ItemType Directory -Path $certPath | Out-Null
+
+# ------------------------ #
+# CERTIFICATE INSTALLATION #
+# ------------------------ #
+if (!(Test-Path -Path $CERTPATH -PathType Container)) {
+    New-Item -ItemType Directory -Path $CERTPATH | Out-Null
 }
 
-$certPEMUrl = "https://developers.cloudflare.com/cloudflare-one/static/documentation/connections/Cloudflare_CA.pem"
-$certCRTUrl = "https://developers.cloudflare.com/cloudflare-one/static/documentation/connections/Cloudflare_CA.crt"
+# Certificate urls
+$CERT_PEM_URL = "https://developers.cloudflare.com/cloudflare-one/static/documentation/connections/Cloudflare_CA.pem"
+$CERT_CRT_URL = "https://developers.cloudflare.com/cloudflare-one/static/documentation/connections/Cloudflare_CA.crt"
 
-$certPEMDestination = "$certPath\cf_pem.pem"
-$certCRTDestination = "$certPath\cf_crt.crt"
+$CERT_PEM_DESTINATION = "$CERTPATH\cf_pem.pem"
+$CERT_CRT_DESTINATION = "$CERTPATH\cf_crt.crt"
 
 $webClient = New-Object System.Net.WebClient
 
 Write-Host "Starting certificate installation..."
 
+# Download certificates
 try {
-    $webClient.DownloadFile($certPEMUrl, $certPEMDestination)
-    Write-Host "PEM downloaded to: $certPEMDestination"
-    Add-Content $logFile "PEM downloaded to: $certPEMDestination"
+    $webClient.DownloadFile($CERT_PEM_URL, $CERT_PEM_DESTINATION)
+    Write-Host "PEM downloaded to: $CERT_PEM_DESTINATION"
+    Add-Content $CERT_LOG "PEM downloaded to: $CERT_PEM_DESTINATION"
 } catch {
-    Write-Host "Error downloading PEM from: $certPEMUrl"
-    Add-Content $logFile "Error downloading PEM from: $certPEMUrl"
+    Write-Host "Error downloading PEM from: $CERT_PEM_URL"
+    Add-Content $CERT_LOG "Error downloading PEM from: $CERT_PEM_URL"
 }
 
 try {
-    $webClient.DownloadFile($certCRTUrl, $certCRTDestination)
-    Write-Host "CRT downloaded to: $certCRTDestination"
-    Add-Content $logFile "CRT downloaded to: $certCRTDestination"
+    $webClient.DownloadFile($CERT_CRT_URL, $CERT_CRT_DESTINATION)
+    Write-Host "CRT downloaded to: $CERT_CRT_DESTINATION"
+    Add-Content $CERT_LOG "CRT downloaded to: $CERT_CRT_DESTINATION"
 } catch {
-    Write-Host "Error downloading CRT from: $certCRTUrl"
-    Add-Content $logFile "Error downloading CRT from: $certCRTUrl"
+    Write-Host "Error downloading CRT from: $CERT_CRT_URL"
+    Add-Content $CERT_LOG "Error downloading CRT from: $CERT_CRT_URL"
 }
 
-Import-Certificate -FilePath $certPEMDestination -CertStoreLocation "Cert:\LocalMachine\Root"
+# Install certificates and log
+Import-Certificate -FilePath $CERT_PEM_DESTINATION -CertStoreLocation "Cert:\LocalMachine\Root"
 Write-Host "Certificate PEM installed in LocalMachine\Root"
-Add-Content $logFile "Certificate PEM installed in LocalMachine\Root"
+Add-Content $CERT_LOG "Certificate PEM installed in LocalMachine\Root"
 
-Import-Certificate -FilePath $certCRTDestination -CertStoreLocation "Cert:\LocalMachine\Root"
+Import-Certificate -FilePath $CERT_CRT_DESTINATION -CertStoreLocation "Cert:\LocalMachine\Root"
 Write-Host "Certificate CRT installed in LocalMachine\Root"
-Add-Content $logFile "Certificate CRT installed in LocalMachine\Root"
+Add-Content $CERT_LOG "Certificate CRT installed in LocalMachine\Root"
+
+# ----------------- #
+# WARP INSTALLATION #
+# ----------------- #
 
 Write-Host "Starting WARP installation ..."
 
@@ -57,19 +69,19 @@ if (!(Test-Path -Path $EXE_FILE)) {
 
 $ORG = Read-Host "Enter your organization name: "
 
-# Set MSI arguments
+# Set arguments
 $MSIArguments = @(
     "/qn"
     "ORGANIZATION=$ORG"
 )
 
 # Launch MSI installer with logging
-$LogFile = Join-Path -Path $PSScriptRoot -ChildPath "install.log"
-Start-Process "msiexec.exe" -ArgumentList "/i `"$EXE_FILE`" $MSIArguments /L*v `"$LogFile`"" -Wait
+$CERT_LOG = Join-Path -Path $PSScriptRoot -ChildPath "install.log"
+$INSTALLATION_RESULT = Start-Process "msiexec.exe" -ArgumentList "/i `"$EXE_FILE`" $MSIArguments /L*v `"$CERT_LOG`"" -Wait
 
 # Check if installation was successful
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "Installation successful."
+if ($INSTALLATION_RESULT.ExitCode -eq 0) {
+    Write-Host "Installation successful!"
 
 } else {
     Write-Host "Installation failed? Please check the installation logs for more information..."

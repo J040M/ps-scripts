@@ -5,7 +5,7 @@ $EXE_FILE = "$TMP_PATH\warp-64.msi"
 
 # WARP certificate
 $CERTPATH = "$TMP_PATH\certificates"
-$CERT_LOG = ".\certlogs.log"
+$CERT_LOG = "$TMP_PATH\certlogs.log"
 
 
 # ------------------------ #
@@ -76,7 +76,7 @@ $MSIArguments = @(
 )
 
 # Launch MSI installer with logging
-$CERT_LOG = Join-Path -Path $PSScriptRoot -ChildPath "install.log"
+$CERT_LOG = Join-Path -Path $PSScriptRoot -ChildPath "$TMP_PATH\install.log"
 $INSTALLATION_RESULT = Start-Process "msiexec.exe" -ArgumentList "/i `"$EXE_FILE`" $MSIArguments /L*v `"$CERT_LOG`"" -Wait
 
 # Check if installation was successful
@@ -84,5 +84,5 @@ if ($INSTALLATION_RESULT.ExitCode -eq 0) {
     Write-Host "Installation successful!"
 
 } else {
-    Write-Host "Installation failed? Please check the installation logs for more information..."
+   Write-Host "Installation failed? Please check the installation logs for more information..."
 }

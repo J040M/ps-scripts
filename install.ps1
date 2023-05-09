@@ -7,6 +7,14 @@ $EXE_FILE = "$TMP_PATH\warp-64.msi"
 $CERTPATH = "$TMP_PATH\certificates"
 $CERT_LOG = "$TMP_PATH\certlogs.log"
 
+# ------------------------ #
+# Require Admin permission #
+# ------------------------ #
+
+if(!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+    Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList "-File `"$($MyInvocation.MyCommand.Path)`"  `"$($MyInvocation.MyCommand.UnboundArguments)`""
+    Exit
+}
 
 # ------------------------ #
 # CERTIFICATE INSTALLATION #
@@ -76,7 +84,7 @@ $MSIArguments = @(
 )
 
 # Launch MSI installer with logging
-$CERT_LOG = Join-Path -Path $PSScriptRoot -ChildPath "$TMP_PATH\install.log"
+$CERT_LOG = Join-Path -Path $PSScriptRoot -ChildPath "install.log"
 $INSTALLATION_RESULT = Start-Process "msiexec.exe" -ArgumentList "/i `"$EXE_FILE`" $MSIArguments /L*v `"$CERT_LOG`"" -Wait
 
 # Check if installation was successful

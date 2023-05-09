@@ -7,6 +7,14 @@ $EXE_FILE = "$TMP_PATH\warp-64.msi"
 $CERTPATH = "$TMP_PATH\certificates"
 $CERT_LOG = "$TMP_PATH\certlogs.log"
 
+# ------------------------ #
+# Require Admin permission #
+# ------------------------ #
+
+if(!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+    Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList "-File `"$($MyInvocation.MyCommand.Path)`"  `"$($MyInvocation.MyCommand.UnboundArguments)`""
+    Exit
+}
 
 # ------------------------ #
 # CERTIFICATE INSTALLATION #

@@ -84,7 +84,7 @@ $MSIArguments = @(
 )
 
 # Launch MSI installer with logging
-$CERT_LOG = Join-Path -Path $PSScriptRoot -ChildPath "$TMP_PATH\install.log"
+$CERT_LOG = Join-Path -Path $PSScriptRoot -ChildPath "install.log"
 $INSTALLATION_RESULT = Start-Process "msiexec.exe" -ArgumentList "/i `"$EXE_FILE`" $MSIArguments /L*v `"$CERT_LOG`"" -Wait
 
 # Check if installation was successful
